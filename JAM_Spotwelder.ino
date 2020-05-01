@@ -6,7 +6,9 @@
 //######################### GLOBAL VARIABLES #########################################
 int wtime[3] = {DEFAULT_T1, DEFAULT_T2, DEFAULT_T3};
 int state = 0;
-
+//int state[] = {0, 0};
+int state_x = 0;
+int state_y = 0;
 #include <LiquidCrystal_PCF8574.h>
 #include <Wire.h>
 #include <Keypad.h>
@@ -50,13 +52,6 @@ void setup() {
     lcd.setBacklight(255);
     lcd.home();
     lcd.clear();
-//    lcd.setCursor(0, 0);
-//    lcd.print(" JAM SpotWelder ");
-//    lcd.setCursor(0, 1);
-//    lcd.print("       TM       ");
-//    //delay(1000);
-//    lcd.home();
-//    lcd.clear();
     lcd.setCursor(0, 0);
     logo();
   } else {
@@ -64,9 +59,9 @@ void setup() {
   }
 }
 //################################ MODULES ###############################
-void torlo(void){
-    lcd.home();
-    lcd.clear();
+void torlo(void) {
+  lcd.home();
+  lcd.clear();
 }
 
 void cont_weld(void) {
@@ -78,54 +73,49 @@ void cont_weld(void) {
   }
 }
 
-void weld(void)
-{
+void weld(void){
 
-  lcd.home();
-  lcd.clear();
+  torlo();
   lcd.print("    PRE-HEAT");
   digitalWrite(pulse_out, 0);
   delay(wtime[0]);
-  lcd.home();
-  lcd.clear();
+  torlo();
   lcd.print("     BREAK");
   digitalWrite(pulse_out, 1);
   delay(wtime[1]);
-  lcd.home();
-  lcd.clear();
+  torlo();
   lcd.print("    WELDING");
   digitalWrite(pulse_out, 0);
   delay(wtime[2]);
   digitalWrite(pulse_out, 1);
-  lcd.home();
-  lcd.clear();
+  torlo();
   //meghivni az elozo menut
 }
 //############################## END MODULS ##############################
 //############################## MENU ####################################
-void logo(void) {
-  lcd.home();
-  lcd.clear();
+void logo(void) { //0_0 elem
+  torlo();
   lcd.setCursor(0, 0);
   lcd.print(" JAM SpotWelder ");
   lcd.setCursor(0, 1);
   lcd.print("       TM       ");
+  state_x = 0;
+  state_y = 0;
 }
 void menu_1_1(void) {
-  lcd.home();
-  lcd.clear();
+  torlo();
   lcd.setCursor(0, 0);
-  lcd.print("MANUAL<");
+  lcd.print("MANUAL WELD<");
   lcd.setCursor(0, 1);
-  lcd.print("AUTO");
-  state = 11;  
-  }
+  lcd.print("AUTOMATA WELD");
+
+}
 
 void menu_1_1_1(void) {
   lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("WELDING<");
+  lcd.print("MANUAL WELDING<");
   lcd.setCursor(0, 1);
   lcd.print("BACK");
 }
@@ -133,23 +123,27 @@ void menu_1_1_2(void) {
   lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("WELDING");
+  lcd.print("MANUAL WELDING");
   lcd.setCursor(0, 1);
   lcd.print("BACK<");
+  state_y--;
 }
+
 void menu_1_2(void) {
   lcd.home();
   lcd.clear();
   lcd.noCursor();
   lcd.setCursor(0, 0);
-  lcd.print("MANUAL");
+  lcd.print("MANUAL WELD");
   lcd.setCursor(0, 1);
   lcd.noCursor();
-  lcd.print("AUTO<");
-  state = 12;
+  lcd.print("AUTOMATA WELD<");
+
 }
 void escape(void) {
   logo();
+  state_x = 0;
+  state_y = 0;
 
 }
 //############################## END MENU ################################
@@ -163,50 +157,39 @@ void loop() {
       break;
     case 'L':
       //do something when var equals 2
-      menu_1_2();
+      state_x++;
       break;
     case 'F':
       //do something when var equals 2
       menu_1_1();
-      break;  
+      state_x--;
+      break;
     case 'E':
       //do something when var equals 2
-      switch (state){
-        case 11:
-          menu_1_1_1();
-        break;
-        case 12:
-          menu_1_1_2();
-        break;
-      }    
-      break;  
-    default:
-      // if nothing else matches, do the default
-      // default is optional
-    break;
-  }
-
-
-  
-/*
-  if (customKey) {
-    Serial.println(customKey);
-    if (customKey == 'K') { // kilepes barhonnan
-      escape();
-    }
-
-    if (customKey == 'L') {
-      menu_1_2();
-    }
-
-    if (customKey == 'F') {
-     
-      menu_1_1();
+      state_y ++;
+      break;
+  } 
+      if (state_x <= 0) {
+        state_x = 0;
+      }
+      if (state_y <= 0) {
+        state_y = 0;
+      }
+      Serial.print(state_x);
+      Serial.print(" : ");
+      Serial.println(state_y);
       
-      if (customKey == 'E') {
-          menu_1_1_1();
-        }
-
-    }*/
-   
+      if (state_x == 0 && state_y == 0) {
+        logo();
+      }
+      if (state_x == 1 && state_y == 0) {
+        menu_1_1();
+      }
+      if (state_x == 2 && state_y == 0) {
+        menu_1_2();
+      }
+      if (state_x == 1 && state_y == 1) {
+        menu_1_1_1();
+      }
+      delay(3);//ne villogjon
   }
